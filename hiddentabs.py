@@ -19,16 +19,16 @@ def on_select(event):
     print(selected_item)
 
 def select_file():
-    filetypes = [
-        ("application files (*.exe)", ".exe")
-    ]
+        filetypes = [
+            ("application files (*.exe)", ".exe")
+        ]
 
-    filename = fd.askopenfilename(
-        title='Open a file',
-        initialdir='/',
-        filetypes=filetypes)
+        filename = fd.askopenfilename(
+            title='Open a file',
+            initialdir='/',
+            filetypes=filetypes)
 
-    selectComboBox.set(filename.split("/")[-1])
+        # selectComboBox.set(filename.split("/")[-1])
 
 def get_hwnd(exe):
     exe_hwnd = None
@@ -58,48 +58,6 @@ def get_pos_from_hwnd(hwnd):
     height = bottom - top
 
     return left, top, width, height
-
-def set_open_pos():
-    exe = selectComboBox.get()
-    hwnd = get_hwnd(exe)
-    left, top, width, height = get_pos_from_hwnd(hwnd)
-
-    config = configparser.ConfigParser()
-    config.read('window_positions.ini')
-
-    if str(exe) in config:
-        config[str(exe)]["opened_pos"] = str(left) + "," + str(top) + "," + str(width) + "," + str(height)
-    else:
-        config[str(exe)] = {
-            "opened_pos": str(left) + "," + str(top) + "," + str(width) + "," + str(height),
-            "closed_pos": str(left) + "," + str(top) + "," + str(width) + "," + str(height)
-        }
-
-    with open('window_positions.ini', 'w') as configfile:
-        config.write(configfile)
-
-    print(str(left) + ", " + str(top) + ", " + str(width) + ", " + str(height))
-
-def set_close_pos():
-    exe = selectComboBox.get()
-    hwnd = get_hwnd(exe)
-    left, top, width, height = get_pos_from_hwnd(hwnd)
-
-    config = configparser.ConfigParser()
-    config.read('window_positions.ini')
-
-    if str(exe) in config:
-        config[str(exe)]["closed_pos"] = str(left) + "," + str(top) + "," + str(width) + "," + str(height)
-    else:
-        config[str(exe)] = {
-            "opened_pos": str(left) + "," + str(top) + "," + str(width) + "," + str(height),
-            "closed_pos": str(left) + "," + str(top) + "," + str(width) + "," + str(height)
-        }
-
-    with open('window_positions.ini', 'w') as configfile:
-        config.write(configfile)
-
-    print(str(left) + ", " + str(top) + ", " + str(width) + ", " + str(height))
 
 
 def open_window(hwnd):
@@ -142,6 +100,49 @@ def on_click(x, y, button, pressed):
         close_windows()
 
 def start_gui():
+
+    def set_open_pos():
+        exe = selectComboBox.get()
+        hwnd = get_hwnd(exe)
+        left, top, width, height = get_pos_from_hwnd(hwnd)
+
+        config = configparser.ConfigParser()
+        config.read('window_positions.ini')
+
+        if str(exe) in config:
+            config[str(exe)]["opened_pos"] = str(left) + "," + str(top) + "," + str(width) + "," + str(height)
+        else:
+            config[str(exe)] = {
+                "opened_pos": str(left) + "," + str(top) + "," + str(width) + "," + str(height),
+                "closed_pos": str(left) + "," + str(top) + "," + str(width) + "," + str(height)
+            }
+
+        with open('window_positions.ini', 'w') as configfile:
+            config.write(configfile)
+
+        print(str(left) + ", " + str(top) + ", " + str(width) + ", " + str(height))
+
+    def set_close_pos():
+        exe = selectComboBox.get()
+        hwnd = get_hwnd(exe)
+        left, top, width, height = get_pos_from_hwnd(hwnd)
+
+        config = configparser.ConfigParser()
+        config.read('window_positions.ini')
+
+        if str(exe) in config:
+            config[str(exe)]["closed_pos"] = str(left) + "," + str(top) + "," + str(width) + "," + str(height)
+        else:
+            config[str(exe)] = {
+                "opened_pos": str(left) + "," + str(top) + "," + str(width) + "," + str(height),
+                "closed_pos": str(left) + "," + str(top) + "," + str(width) + "," + str(height)
+            }
+
+        with open('window_positions.ini', 'w') as configfile:
+            config.write(configfile)
+
+        print(str(left) + ", " + str(top) + ", " + str(width) + ", " + str(height))
+
     def set_combobox_apps():
         config = configparser.ConfigParser()
         config.read('window_positions.ini')
@@ -152,7 +153,7 @@ def start_gui():
     root = tk.Tk()
 
     root.title("HiddenTabs")
-    root.geometry("600x400")
+    root.geometry("400x300")
     root.wm_iconphoto(True, tk.PhotoImage(file="resources/icon.png"))
 
     selectLabel = ttk.Label(root, text="Select an application:", font=("TkDefaultFont", 16))
@@ -164,8 +165,9 @@ def start_gui():
     set_combobox_apps()
 
     selectButton = ttk.Button(root, text="Select a different app", command=select_file)
-    selectButton.pack(pady=(10))
+    selectButton.pack(pady=(10, 30))
 
+    
     setOpenButton = ttk.Button(root, text="Set Open Position", command=set_open_pos)
     setOpenButton.pack(pady=(10))
     setCloseButton = ttk.Button(root, text="Set Close Position", command=set_close_pos)
