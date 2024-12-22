@@ -4,31 +4,13 @@ import sys
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog as fd
-import darkdetect
 import sv_ttk
 import win32gui
-import win32con
 import win32process
 import psutil
 import configparser
 from pynput import mouse
 import threading
-
-def on_select(event):
-    selected_item = selectComboBox.get()
-    print(selected_item)
-
-def select_file():
-        filetypes = [
-            ("application files (*.exe)", ".exe")
-        ]
-
-        filename = fd.askopenfilename(
-            title='Open a file',
-            initialdir='/',
-            filetypes=filetypes)
-
-        # selectComboBox.set(filename.split("/")[-1])
 
 def get_hwnd(exe):
     exe_hwnd = None
@@ -76,14 +58,17 @@ def close_windows():
     
     for exe in config.sections():
         hwnd = get_hwnd(exe)
-        pos = config[str(exe)]["closed_pos"].split(",")
-        left, top, width, height = int(pos[0]), int(pos[1]), int(pos[2]), int(pos[3])
-        win32gui.MoveWindow(hwnd, left, top, width, height, True)
+        if hwnd is not None:
+            pos = config[str(exe)]["closed_pos"].split(",")
+            left, top, width, height = int(pos[0]), int(pos[1]), int(pos[2]), int(pos[3])
+            win32gui.MoveWindow(hwnd, left, top, width, height, True)
 
 
 def on_click(x, y, button, pressed):
+    print("clicked")
     config = configparser.ConfigParser()
     config.read('window_positions.ini')
+    print(config.sections())
 
     pressedWindow = win32gui.GetForegroundWindow()
     pid = win32process.GetWindowThreadProcessId(pressedWindow)[1]
@@ -93,13 +78,27 @@ def on_click(x, y, button, pressed):
         return
     
     activeExe = psutil.Process(pid).name()
-
-    if activeExe in config:
+    print(activeExe)
+    if activeExe is not None and activeExe in config and pressedWindow is not None:
         open_window(pressedWindow)
+        print("opened")
     else:
         close_windows()
+        print("closed")
+
 
 def start_gui():
+    def select_file():
+        filetypes = [
+            ("application files (*.exe)", ".exe")
+        ]
+
+        filename = fd.askopenfilename(
+            title='Open a file',
+            initialdir='/',
+            filetypes=filetypes)
+
+        selectComboBox.set(filename.split("/")[-1])
 
     def set_open_pos():
         exe = selectComboBox.get()
@@ -154,7 +153,7 @@ def start_gui():
 
     root.title("HiddenTabs")
     root.geometry("400x300")
-    root.wm_iconphoto(True, tk.PhotoImage(file="resources/icon.png"))
+    root.wm_iconphoto(True, tk.PhotoImage(file="src/resources/icon.png"))
 
     selectLabel = ttk.Label(root, text="Select an application:", font=("TkDefaultFont", 16))
     selectLabel.pack(pady=(20, 10))
@@ -190,7 +189,7 @@ def start_tray():
         MenuItem('Exit', exitApp)
     )
 
-    image = Image.open("resources/icon.png")
+    image = Image.open("src/resources/icon.png")
 
     icon = Icon("MyApp", image, "HiddenTabs", menu)
 
@@ -200,11 +199,10 @@ def start_listener():
     with mouse.Listener(on_click=on_click) as listener:
         listener.join()
 
+
 if __name__ == "__main__":
     listener_thread = threading.Thread(target=start_listener, daemon=True)
-    gui_thread = threading.Thread(target=start_gui, daemon=True)
 
     listener_thread.start()
-    gui_thread.start()
     start_tray()
 

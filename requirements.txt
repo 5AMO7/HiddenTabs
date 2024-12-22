@@ -1,0 +1,9 @@
+pystray
+PIL
+tkinter
+sv_ttk
+win32gui
+win32process
+psutil
+configparser
+pynput
